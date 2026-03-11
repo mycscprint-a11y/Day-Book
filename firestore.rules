@@ -1,0 +1,86 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields: uid, email, role
+    //
+    // Collection: clients
+    // Fields: name, phone, defaultRate, createdAt
+    //
+    // Collection: vendors
+    // Fields: name, phone, defaultRate, createdAt
+    //
+    // Collection: entries
+    // Fields: date, clientId, clientName, vendorId, vendorName, quantity, userRate, vendorRate, totalUserAmount, totalVendorAmount, profit, isRejected, createdBy, createdAt
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "mycscprint@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidEntry(data) {
+      return data.keys().hasAll(['date', 'clientId', 'clientName', 'vendorId', 'vendorName', 'quantity', 'userRate', 'vendorRate', 'totalUserAmount', 'totalVendorAmount', 'profit', 'isRejected', 'createdBy', 'createdAt']) &&
+             data.clientId is string && data.vendorId is string &&
+             data.quantity is number && data.quantity >= 0 &&
+             data.userRate is number && data.vendorRate is number &&
+             data.totalUserAmount is number &&
+             data.totalVendorAmount is number &&
+             data.profit is number &&
+             data.isRejected is bool &&
+             data.createdBy == request.auth.uid;
+    }
+
+    function isValidClientVendor(data) {
+      return data.keys().hasAll(['name', 'defaultRate', 'createdAt']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.defaultRate is number && data.defaultRate >= 0;
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && 
+                      request.resource.data.role == 'user' && 
+                      isValidEmail(request.resource.data.email);
+      allow update: if isAdmin();
+    }
+
+    match /clients/{clientId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidClientVendor(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+
+    match /vendors/{vendorId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidClientVendor(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+
+    match /entries/{entryId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidEntry(request.resource.data);
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+  }
+}

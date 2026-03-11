@@ -1,0 +1,83 @@
+{
+  "entities": {
+    "Entry": {
+      "title": "Entry",
+      "description": "A single entry in the parda book representing a transaction.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "clientId": { "type": "string" },
+        "clientName": { "type": "string" },
+        "vendorId": { "type": "string" },
+        "vendorName": { "type": "string" },
+        "quantity": { "type": "number" },
+        "userRate": { "type": "number" },
+        "vendorRate": { "type": "number" },
+        "totalUserAmount": { "type": "number" },
+        "totalVendorAmount": { "type": "number" },
+        "profit": { "type": "number" },
+        "isRejected": { "type": "boolean" },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["date", "clientId", "vendorId", "quantity", "userRate", "vendorRate", "totalUserAmount", "totalVendorAmount", "profit", "isRejected", "createdBy", "createdAt"]
+    },
+    "Client": {
+      "title": "Client",
+      "description": "A client/user who pays for services.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "defaultRate": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "defaultRate", "createdAt"]
+    },
+    "Vendor": {
+      "title": "Vendor",
+      "description": "A vendor who provides services.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "defaultRate": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "defaultRate", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User profile information.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] }
+      },
+      "required": ["uid", "email", "role"]
+    }
+  },
+  "firestore": {
+    "/entries/{entryId}": {
+      "schema": "Entry",
+      "description": "Collection of parda book entries."
+    },
+    "/clients/{clientId}": {
+      "schema": "Client",
+      "description": "Collection of clients."
+    },
+    "/vendors/{vendorId}": {
+      "schema": "Vendor",
+      "description": "Collection of vendors."
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles."
+    }
+  }
+}

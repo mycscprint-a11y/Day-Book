@@ -1,0 +1,5 @@
+{
+  "name": "Parda Book Manager",
+  "description": "A day book application for managing entries, calculating vendor rates, user rates, and admin profit automatically.",
+  "requestFramePermissions": []
+}
